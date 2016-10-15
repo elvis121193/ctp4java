@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<array>
+				<value>classpath:md.properties</value>
+			</array>
+		</property>
+	</bean>
+
+	<bean id="quotaCallback" class="org.mohe.ctp.service.impl.md.QuotaCallbackDefault" />
+
+	<bean id="ctpMdApi" class="org.mohe.ctp.service.impl.md.CTPMdApi">
+		<property name="frontAddress" value="${frontAddress}" />
+		<property name="flowPath" value="${flowPath}" />
+	</bean>
+
+	<bean id="quotaService" class="org.mohe.ctp.service.impl.md.QuotaServiceImpl"
+		init-method="init" destroy-method="destroy">
+		<property name="mdApi" ref="ctpMdApi" />
+	</bean>
+</beans>
