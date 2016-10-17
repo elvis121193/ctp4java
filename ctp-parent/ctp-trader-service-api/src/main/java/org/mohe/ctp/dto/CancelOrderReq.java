@@ -8,9 +8,9 @@ public class CancelOrderReq {
 	
 	private String orderId;
 	
-	private String frontId;
+	private int frontId;
 	
-	private String sessionId;
+	private int sessionId;
 
 	public String getSymbol() {
 		return symbol;
@@ -36,19 +36,19 @@ public class CancelOrderReq {
 		this.orderId = orderId;
 	}
 
-	public String getFrontId() {
+	public int getFrontId() {
 		return frontId;
 	}
 
-	public void setFrontId(String frontId) {
+	public void setFrontId(int frontId) {
 		this.frontId = frontId;
 	}
 
-	public String getSessionId() {
+	public int getSessionId() {
 		return sessionId;
 	}
 
-	public void setSessionId(String sessionId) {
+	public void setSessionId(int sessionId) {
 		this.sessionId = sessionId;
 	}
 	

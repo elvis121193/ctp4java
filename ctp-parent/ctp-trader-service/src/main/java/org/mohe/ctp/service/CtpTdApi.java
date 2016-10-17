@@ -6,12 +6,20 @@ import java.math.BigDecimal;
 
 import org.apache.log4j.Logger;
 import org.mohe.ctp.dto.AccountDTO;
+import org.mohe.ctp.dto.CancelOrderReq;
 import org.mohe.ctp.dto.ErrorDTO;
 import org.mohe.ctp.dto.OrderDTO;
+import org.mohe.ctp.dto.OrderReq;
 import org.mohe.ctp.dto.PositionDTO;
-import org.mohe.ctp.entity.ErrorInfo;
+import org.mohe.ctp.dto.TradeDTO;
 import org.mohe.ctp.enums.THOST_TE_RESUME_TYPE;
+import org.mohe.ctp.enums.ThostFtdcActionFlagType;
+import org.mohe.ctp.enums.ThostFtdcContingentConditionType;
 import org.mohe.ctp.enums.ThostFtdcDirectionType;
+import org.mohe.ctp.enums.ThostFtdcForceCloseReasonType;
+import org.mohe.ctp.enums.ThostFtdcHedgeFlagEnType;
+import org.mohe.ctp.enums.ThostFtdcTimeConditionType;
+import org.mohe.ctp.enums.ThostFtdcVolumeConditionType;
 import org.mohe.ctp.service.sequence.EnumSeqType;
 import org.mohe.ctp.service.sequence.SequenceService;
 import org.mohe.ctp.service.td.GatewayService;
@@ -30,6 +38,8 @@ import cn.yiwang.ctp.struct.CTPInvestorPositionDetail;
 import cn.yiwang.ctp.struct.CTPOrder;
 import cn.yiwang.ctp.struct.CTPOrderAction;
 import cn.yiwang.ctp.struct.CTPQryInstrument;
+import cn.yiwang.ctp.struct.CTPQryInvestorPosition;
+import cn.yiwang.ctp.struct.CTPQryTradingAccount;
 import cn.yiwang.ctp.struct.CTPReqUserLogin;
 import cn.yiwang.ctp.struct.CTPRspInfo;
 import cn.yiwang.ctp.struct.CTPRspUserLogin;
@@ -55,37 +65,16 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 	private int sessionId;
 	private boolean isConnected;
 	private boolean isLogined;
-
-	private String userId;
-	private String password;
-	private String brokerId;
-	private String address;
-	private String flowPath;
-
-	private boolean dbCached;
 	
+	private String userId;
+	private String brokerId;
+	private String password;
 	private int maxOrderRef;
 
 	public CtpTdApi(GatewayService gateway) {
 		isConnected = false;
 		isLogined = false;
 		this.gateway = gateway;
-	}
-
-	public boolean isDbCached() {
-		return dbCached;
-	}
-
-	public void setDbCached(boolean dbCached) {
-		this.dbCached = dbCached;
-	}
-
-	public String getFlowPath() {
-		return flowPath;
-	}
-
-	public void setFlowPath(String flowPath) {
-		this.flowPath = flowPath;
 	}
 
 	public SequenceService getSequenceService() {
@@ -104,37 +93,6 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		this.instrumentService = instrumentService;
 	}
 
-	public String getUserId() {
-		return userId;
-	}
-
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getBrokerId() {
-		return brokerId;
-	}
-
-	public void setBrokerId(String brokerId) {
-		this.brokerId = brokerId;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
 
 	public void onFrontConnected() {
 		isConnected = true;
@@ -210,7 +168,24 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 				+ investorPosition.PosiDirection;
 		
 		PositionDTO position = new PositionDTO();
+		position.setGatewayName(gateway.getGatewayName());
 		
+		position.setSymbol(investorPosition.InstrumentID);
+		position.setVtSymbol(investorPosition.InstrumentID);
+		
+		position.setDirection(String.valueOf(investorPosition.PosiDirection));
+		if(ThostFtdcDirectionType.THOST_FTDC_D_Buy.getCode() == investorPosition.PosiDirection ){
+			position.setFrozen(investorPosition.LongFrozen);
+		}else
+			position.setFrozen(investorPosition.ShortFrozen);
+		
+		position.setPosition(investorPosition.Position);
+		position.setYdPosition(investorPosition.YdPosition);
+		
+		if(position.getPosition() > 0){
+			position.setPrice(investorPosition.PositionCost/investorPosition.Position);
+		}
+		position.setVtPositionName(positionName);
 		this.gateway.onPosition(position);
 	}
 
@@ -292,7 +267,27 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 	}
 
 	public void onRtnTrade(CTPTrade trade) {
-
+		TradeDTO tradeDto = new TradeDTO();
+		tradeDto.setGatewayName(gateway.getGatewayName());
+		tradeDto.setSymbol(trade.InstrumentID);
+		tradeDto.setExchange(trade.ExchangeID);
+		tradeDto.setVtSymbol(trade.ExchangeInstID);
+		
+		tradeDto.setTradeId(trade.TradeID);
+		tradeDto.setVtTradeId(gateway.getGatewayName()+"."+trade.TradeID);
+		
+		tradeDto.setOrderId(trade.OrderRef);
+		tradeDto.setVtOrderId(gateway.getGatewayName()+"."+trade.OrderRef);
+		
+		tradeDto.setDirection(String.valueOf(trade.Direction));
+		tradeDto.setOffset(String.valueOf(trade.OffsetFlag));
+		
+		tradeDto.setPrice(trade.Price);
+		tradeDto.setVolume(trade.Volume);
+		tradeDto.setTradeTime(trade.TradeTime);
+		
+		gateway.onTrade(tradeDto);
+		
 	}
 
 	public void onRspOrderAction(CTPInputOrderAction inputOrderAction,
@@ -359,7 +354,7 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 				sequenceService.getSequence(EnumSeqType.REQUEST));
 	}
 
-	public void connect() {
+	public void connect(String flowPath, String frontAddress, String userId, String brokerId, String password) {
 		if (isConnected) {
 			if (!isLogined) {
 				login();
@@ -376,7 +371,7 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 
 			tdApi = new CThostFtdcTraderApi();
 			tdApi.createFtdcTraderApi(flowPath);
-			tdApi.registerFront(address);
+			tdApi.registerFront(frontAddress);
 			tdApi.subscribePrivateTopic(THOST_TE_RESUME_TYPE.THOST_TERT_QUICK
 					.getCode());
 			tdApi.subscribePublicTopic(THOST_TE_RESUME_TYPE.THOST_TERT_RESUME
@@ -386,5 +381,69 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 			tdApi.join();
 		}
 	}
+	
+	
+	public void qryAccount(){
+		CTPQryTradingAccount qryTradingAccount = new CTPQryTradingAccount();
+		tdApi.reqQryTradingAccount(qryTradingAccount , sequenceService.getSequence(EnumSeqType.REQUEST));
+	}
+	
+	public void qryPosition(){
+		CTPQryInvestorPosition qryInvestorPosition = new CTPQryInvestorPosition();
+		qryInvestorPosition.BrokerID = brokerId;
+		qryInvestorPosition.InvestorID = userId;
+		tdApi.reqQryInvestorPosition(qryInvestorPosition , sequenceService.getSequence(EnumSeqType.REQUEST));
+	}
 
+	public String sendOrder(OrderReq orderReq){
+		
+		int orderRef = sequenceService.getSequence(EnumSeqType.ORDERREF);
+		
+		CTPInputOrder inputOrder = new CTPInputOrder();
+		inputOrder.InstrumentID = orderReq.getSymbol();
+		inputOrder.LimitPrice = orderReq.getPrice();
+		inputOrder.VolumeTotalOriginal = orderReq.getVolume();
+		
+		inputOrder.OrderPriceType = orderReq.getPriceType().getCode();
+		inputOrder.Direction = orderReq.getDirection().getCode();
+		inputOrder.CombOffsetFlag = String.valueOf(orderReq.getOffset().getCode());
+		
+		inputOrder.OrderRef = String.valueOf(orderRef);
+		inputOrder.InvestorID = userId;
+		inputOrder.UserID = userId;
+		inputOrder.BrokerID = brokerId;
+		inputOrder.CombHedgeFlag = String.valueOf(ThostFtdcHedgeFlagEnType.THOST_FTDC_HFEN_Speculation.getCode());
+		inputOrder.ContingentCondition = ThostFtdcContingentConditionType.THOST_FTDC_CC_Immediately.getCode();
+		inputOrder.ForceCloseReason = ThostFtdcForceCloseReasonType.THOST_FTDC_FCC_NotForceClose.getCode();
+		
+		inputOrder.IsAutoSuspend = 0;
+		inputOrder.TimeCondition = ThostFtdcTimeConditionType.THOST_FTDC_TC_GFD.getCode();
+		inputOrder.VolumeCondition = ThostFtdcVolumeConditionType.THOST_FTDC_VC_AV.getCode();
+		inputOrder.MinVolume = 1;
+
+		tdApi.reqOrderInsert(inputOrder , sequenceService.getSequence(EnumSeqType.ORDERREF));
+		return gateway.getGatewayName()+"."+orderRef;
+	}
+	
+	public void cancelOrder(CancelOrderReq cancelOrderReq){
+		
+		CTPInputOrderAction inputOrderAction = new CTPInputOrderAction();
+		inputOrderAction.InstrumentID = cancelOrderReq.getSymbol();
+		inputOrderAction.ExchangeID = cancelOrderReq.getExchange();
+		inputOrderAction.OrderRef = cancelOrderReq.getOrderId();
+		inputOrderAction.FrontID = frontId;//cancelOrderReq.getFrontId();
+		inputOrderAction.SessionID = sessionId;//cancelOrderReq.getSessionId();
+		
+		inputOrderAction.ActionFlag = ThostFtdcActionFlagType.THOST_FTDC_AF_Delete.getCode();
+		inputOrderAction.BrokerID = brokerId;
+		inputOrderAction.InvestorID = userId;
+		tdApi.reqOrderAction(inputOrderAction , sequenceService.getSequence(EnumSeqType.REQUEST));
+	}
+	
+	
+	public void destroy(){
+		if(tdApi != null){
+			tdApi.release();
+		}
+	}
 }

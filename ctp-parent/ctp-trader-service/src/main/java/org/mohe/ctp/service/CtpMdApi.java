@@ -26,16 +26,6 @@ public class CtpMdApi implements CThostFtdcMdSpi {
 	private final static Logger logger = Logger.getLogger(CtpMdApi.class);
 
 	/**
-	 * 行情前置连接地址
-	 */
-	private String frontAddress;
-
-	/**
-	 * 流文件
-	 */
-	private String flowPath;
-
-	/**
 	 * 登录状态
 	 */
 	private boolean isLogined;
@@ -64,22 +54,6 @@ public class CtpMdApi implements CThostFtdcMdSpi {
 	 * 网关
 	 */
 	private GatewayService gateway;
-
-	public String getFlowPath() {
-		return flowPath;
-	}
-
-	public void setFlowPath(String flowPath) {
-		this.flowPath = flowPath;
-	}
-
-	public String getFrontAddress() {
-		return frontAddress;
-	}
-
-	public void setFrontAddress(String frontAddress) {
-		this.frontAddress = frontAddress;
-	}
 
 	public CtpMdApi(GatewayService gateway) {
 		isConntected = false;
@@ -233,7 +207,7 @@ public class CtpMdApi implements CThostFtdcMdSpi {
 		}
 	}
 
-	public void connect() {
+	public void connect(String flowPath, String frontAddress) {
 		// 如果尚未建立服务器连接，则进行连接
 		if (!isConntected) {
 			File file = new File(flowPath);
