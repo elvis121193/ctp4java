@@ -11,5 +11,5 @@ public interface SequenceService {
 	 * 获取序列号
 	 * @return
 	 */
-	public Integer getSequence();
+	public Integer getSequence(EnumSeqType seqType);
 }

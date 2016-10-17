@@ -14,6 +14,7 @@
 		<module>ctp-service-webapp</module>
 		<module>ctp-sequence-service</module>
 		<module>ctp-sequence-service-api</module>
+		<module>ctp-common</module>
 	</modules>
 
 	<properties>

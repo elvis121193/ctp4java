@@ -1,6 +1,7 @@
 package org.mohe.ctp.service.impl.td;
 
 import org.apache.log4j.Logger;
+import org.mohe.ctp.service.sequence.EnumSeqType;
 import org.mohe.ctp.service.sequence.SequenceService;
 
 import cn.yiwang.ctp.CThostFtdcTraderApi;
@@ -236,7 +237,7 @@ public final class CTPTdApi implements CThostFtdcTraderSpi{
 		reqUserLogin.BrokerID = brokerId;
 		reqUserLogin.Password = password;
 		reqUserLogin.UserID = userId;
-		tdApi.reqUserLogin(reqUserLogin, sequenceService.getSequence());
+		tdApi.reqUserLogin(reqUserLogin, sequenceService.getSequence(EnumSeqType.REQUEST));
 		
 	}
 	

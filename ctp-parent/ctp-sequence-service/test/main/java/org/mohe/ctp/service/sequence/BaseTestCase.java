@@ -16,8 +16,8 @@ public class BaseTestCase {
 	@Test
 	public void Test()	{
 		
-		System.out.println(sequenceService.getSequence());
-		System.out.println(sequenceService.getSequence());
+		System.out.println(sequenceService.getSequence(EnumSeqType.REQUEST));
+		System.out.println(sequenceService.getSequence(EnumSeqType.REQUEST));
 	}
 	
 
