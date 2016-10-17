@@ -5,6 +5,11 @@ import java.util.List;
 import org.mohe.ctp.entity.Instrument;
 
 
+/**
+ * 合约管理
+ * @author Elvis
+ *
+ */
 public interface InstrumentService {
 
 	

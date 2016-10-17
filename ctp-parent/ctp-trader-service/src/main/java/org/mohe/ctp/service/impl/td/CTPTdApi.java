@@ -1,12 +1,12 @@
 package org.mohe.ctp.service.impl.td;
 
 import org.apache.log4j.Logger;
+import org.mohe.ctp.enums.THOST_TE_RESUME_TYPE;
 import org.mohe.ctp.service.sequence.EnumSeqType;
 import org.mohe.ctp.service.sequence.SequenceService;
 
 import cn.yiwang.ctp.CThostFtdcTraderApi;
 import cn.yiwang.ctp.CThostFtdcTraderSpi;
-import cn.yiwang.ctp.struct.CTPConst;
 import cn.yiwang.ctp.struct.CTPExchange;
 import cn.yiwang.ctp.struct.CTPInputOrder;
 import cn.yiwang.ctp.struct.CTPInputOrderAction;
@@ -48,10 +48,13 @@ public final class CTPTdApi implements CThostFtdcTraderSpi{
 	
 	private int sessionId;
 	
+	private int maxOrderRef;
 	
 	private CThostFtdcTraderApi tdApi;
 	
 	private SequenceService sequenceService;
+	
+	
 	
 	
 
@@ -244,8 +247,8 @@ public final class CTPTdApi implements CThostFtdcTraderSpi{
 	public void connect(){
 		tdApi = new CThostFtdcTraderApi();
 		tdApi.createFtdcTraderApi(flowPath);
-		tdApi.subscribePrivateTopic(CTPConst.THOST_TERT_QUICK);
-		tdApi.subscribePublicTopic(CTPConst.THOST_TERT_RESUME);
+		tdApi.subscribePrivateTopic(THOST_TE_RESUME_TYPE.THOST_TERT_QUICK.getCode());
+		tdApi.subscribePublicTopic(THOST_TE_RESUME_TYPE.THOST_TERT_RESUME.getCode());
 		tdApi.registerSpi(this);
 		tdApi.registerFront(frontAddress);
 		tdApi.init();
