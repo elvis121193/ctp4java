@@ -2,7 +2,7 @@ package org.mohe.ctp.dao;
 
 import org.junit.Test;
 import org.mohe.ctp.BaseTestCase;
-import org.mohe.ctp.entity.Instrument;
+import org.mohe.ctp.entity.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class InstrumentDaoTest extends BaseTestCase{
@@ -12,10 +12,10 @@ public class InstrumentDaoTest extends BaseTestCase{
 	
 	@Test
 	public void test() {
-		Instrument inst = new Instrument();
+		Contract inst = new Contract();
 		
-		inst.setInstrumentID("IC1610");
-		inst.setId("IC1610");
+		inst.setSymbol("IC1610");
+		//inst.setId("IC1610");
 		instrumentDao.save(inst);
 		
 		System.out.println(instrumentDao.getInstrumentList());

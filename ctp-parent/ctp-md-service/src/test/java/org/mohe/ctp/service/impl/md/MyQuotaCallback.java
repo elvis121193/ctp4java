@@ -6,7 +6,7 @@ import org.mohe.ctp.service.md.QuotaCallback;
 public class MyQuotaCallback implements QuotaCallback {
 
 	public void onTick(Tick tick) {
-		System.out.println(tick.getExchangeId() + " " + tick.getAskPrice());
+
 	}
 
 }

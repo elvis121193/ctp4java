@@ -8,6 +8,7 @@ import org.mohe.ctp.dto.OrderReq;
 import org.mohe.ctp.dto.PositionDTO;
 import org.mohe.ctp.dto.TickDTO;
 import org.mohe.ctp.dto.TradeDTO;
+import org.mohe.ctp.entity.Contract;
 
 /**
  * CTP网关
@@ -52,6 +53,11 @@ public interface GatewayService {
 	 * @param error
 	 */
 	public void onError(ErrorDTO error);
+	
+	/**
+	 * @param contract
+	 */
+	public void onContract(Contract contract);
 	
 	/**
 	 * 发单

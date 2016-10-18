@@ -1,5 +1,6 @@
 package org.mohe.ctp.service.impl.td;
 
+import org.apache.log4j.Logger;
 import org.mohe.ctp.dto.AccountDTO;
 import org.mohe.ctp.dto.CancelOrderReq;
 import org.mohe.ctp.dto.ErrorDTO;
@@ -8,19 +9,38 @@ import org.mohe.ctp.dto.OrderReq;
 import org.mohe.ctp.dto.PositionDTO;
 import org.mohe.ctp.dto.TickDTO;
 import org.mohe.ctp.dto.TradeDTO;
+import org.mohe.ctp.entity.Contract;
 import org.mohe.ctp.service.CtpMdApi;
 import org.mohe.ctp.service.CtpTdApi;
 import org.mohe.ctp.service.td.GatewayService;
 
+/**
+ * Ctp网关实现类
+ * @author Elvis
+ *
+ */
 public class CtpGatewayServiceImpl implements GatewayService {
 	
+	private final static Logger logger = Logger.getLogger(CtpGatewayServiceImpl.class);
+	/**
+	 * 行情接口
+	 */
 	private CtpMdApi mdApi;
 	
+	/**
+	 * 交易接口
+	 */
 	private CtpTdApi tdApi;
 	
-	private boolean mdConnected;
+	/**
+	 * 行情是否连接
+	 */
+	private volatile boolean mdConnected;
 	
-	private boolean tdConnected;
+	/**
+	 * 交易是否连接
+	 */
+	private volatile  boolean tdConnected;
 	
 	private boolean qryEnabled;
 	
@@ -38,8 +58,6 @@ public class CtpGatewayServiceImpl implements GatewayService {
 	private String tdFlowPath;
 	
 	private String mdFlowPath;
-	
-	
 	
 	public String getUserId() {
 		return userId;
@@ -107,15 +125,18 @@ public class CtpGatewayServiceImpl implements GatewayService {
 	}
 	
 	public void connect(){
-		tdApi.connect(tdFlowPath, tdFrontAddress, userId, brokerId, password);
 		mdApi.connect(mdFlowPath, mdFrontAddress);
+		tdApi.connect(tdFlowPath, tdFrontAddress, userId, brokerId, password);
 		
-		initQuery();
+		logger.info("连接成功");
+		//initQuery();
 	}
 	
 	public void initQuery(){
 		if(qryEnabled){
+			logger.info("查询账户信息");
 			qryAccount();
+			logger.info("查询账户持仓");
 			qryPosition();
 		}
 	}
@@ -130,34 +151,36 @@ public class CtpGatewayServiceImpl implements GatewayService {
 	}
 
 	public void onTick(TickDTO tick) {
-
+		logger.info("行情Tick");
 	}
 
 	public void onTrade(TradeDTO trade) {
-
+		logger.info("成交");
 	}
 
 	public void onOrder(OrderDTO order) {
-
+		logger.info("订单");
 	}
 
 	public void onPosition(PositionDTO position) {
-
+		logger.info("持仓点位");
 	}
 
 	public void onAccount(AccountDTO account) {
-
+		logger.info("账户信息");
 	}
 
 	public void onError(ErrorDTO error) {
-
+		logger.info("错误");
 	}
 
 	public void sendOrder(OrderReq orderReq) {
+		logger.info("下单");
 		tdApi.sendOrder(orderReq);
 	}
 
 	public void cancelOrder(CancelOrderReq cancelOrderReq) {
+		logger.info("撤单");
 		tdApi.cancelOrder(cancelOrderReq);
 	}
 
@@ -170,6 +193,13 @@ public class CtpGatewayServiceImpl implements GatewayService {
 	}
 
 	public void subscribe(String[] instruments) {
+		do{
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}while(!mdConnected);
 		mdApi.subscribe(instruments);
 	}
 
@@ -183,6 +213,10 @@ public class CtpGatewayServiceImpl implements GatewayService {
 
 	public String getGatewayName() {
 		return "CTP";
+	}
+
+	public void onContract(Contract contract) {
+		
 	}
 
 }

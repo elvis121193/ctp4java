@@ -1,10 +1,10 @@
 package org.mohe.ctp.dao;
 
-import org.mohe.ctp.entity.TradingAccount;
+import org.mohe.ctp.entity.Account;
 
 public interface TradingAccountDao {
 
-	public void save(TradingAccount ta);
+	public void save(Account ta);
 
-	public TradingAccount get(String brokerID, String accountID);
+	public Account get(String brokerID, String accountID);
 }

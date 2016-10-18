@@ -65,6 +65,7 @@ public class CtpMdApi implements CThostFtdcMdSpi {
 		logger.info("行情服务器连接成功");
 		isConntected = true;
 		login();
+		this.gateway.setMdConnected(true);
 
 	}
 
@@ -72,6 +73,7 @@ public class CtpMdApi implements CThostFtdcMdSpi {
 		logger.info("行情服务器连接断开");
 		isConntected = false;
 		isLogined = false;
+		this.gateway.setMdConnected(false);
 	}
 
 	public void onHeartBeatWarning(int timeLapse) {

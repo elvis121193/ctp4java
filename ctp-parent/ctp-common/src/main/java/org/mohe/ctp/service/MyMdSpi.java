@@ -1,4 +1,4 @@
-package org.mohe.ctp.service.impl.md;
+package org.mohe.ctp.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
+import org.mohe.ctp.entity.ErrorDTO;
 import org.mohe.ctp.entity.Tick;
-import org.mohe.ctp.service.md.QuotaCallback;
-import org.mohe.ctp.util.DateTimeUtil;
+import org.mohe.ctp.gateway.Gateway;
 
 import cn.yiwang.ctp.CThostFtdcMdApi;
 import cn.yiwang.ctp.CThostFtdcMdSpi;
@@ -21,25 +21,11 @@ import cn.yiwang.ctp.struct.CTPRspUserLogin;
 import cn.yiwang.ctp.struct.CTPSpecificInstrument;
 import cn.yiwang.ctp.struct.CTPUserLogout;
 
-/**
- * CTP行情接口
- * 
- * @author Elvis
- * 
- */
-public final class CTPMdApi implements CThostFtdcMdSpi {
+public class MyMdSpi implements CThostFtdcMdSpi {
+	
+	private final static Logger logger = Logger.getLogger(MyMdSpi.class);
+	
 
-	private final static Logger logger = Logger.getLogger(CTPMdApi.class);
-
-	/**
-	 * 行情前置连接地址
-	 */
-	private String frontAddress;
-
-	/**
-	 * 流文件
-	 */
-	private String flowPath;
 
 	/**
 	 * 登录状态
@@ -67,36 +53,21 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 	private CThostFtdcMdApi mdApi;
 
 	/**
-	 * 行情推送接口
+	 * 网关
 	 */
-	private QuotaCallback callback;
+	private Gateway gateway;
 
-	public String getFlowPath() {
-		return flowPath;
-	}
-
-	public void setFlowPath(String flowPath) {
-		this.flowPath = flowPath;
-	}
-
-	public String getFrontAddress() {
-		return frontAddress;
-	}
-
-	public void setFrontAddress(String frontAddress) {
-		this.frontAddress = frontAddress;
-	}
-
-	public CTPMdApi() {
+	public MyMdSpi(Gateway gateway) {
 		isConntected = false;
 		isLogined = false;
-
+		this.gateway = gateway;
 	}
 
 	public void onFrontConnected() {
 		logger.info("行情服务器连接成功");
 		isConntected = true;
 		login();
+		this.gateway.setMdConnected(true);
 
 	}
 
@@ -104,6 +75,7 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 		logger.info("行情服务器连接断开");
 		isConntected = false;
 		isLogined = false;
+		this.gateway.setMdConnected(false);
 	}
 
 	public void onHeartBeatWarning(int timeLapse) {
@@ -119,8 +91,15 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 			String[] instruments = (String[]) subscribedSysmbols
 					.toArray(new String[subscribedSysmbols.size()]);
 			subscribe(instruments);
-		} else
+		} else {
 			logger.error("登录错误:错误号" + rspInfo.ErrorID + ": " + rspInfo.ErrorMsg);
+			if (gateway != null) {
+				ErrorDTO error = new ErrorDTO();
+				error.setErrorNo(rspInfo.ErrorID);
+				error.setErrorMsg(rspInfo.ErrorMsg);
+				gateway.onError(error);
+			}
+		}
 	}
 
 	public void onRspUserLogout(CTPUserLogout userLogout, CTPRspInfo rspInfo,
@@ -128,12 +107,25 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 		if (rspInfo.ErrorID == 0) {
 			isLogined = false;
 			logger.info("行情服务器登出完成");
-		} else
+		} else {
 			logger.error("登出错误:错误号" + rspInfo.ErrorID + ": " + rspInfo.ErrorMsg);
+			if (gateway != null) {
+				ErrorDTO error = new ErrorDTO();
+				error.setErrorNo(rspInfo.ErrorID);
+				error.setErrorMsg(rspInfo.ErrorMsg);
+				gateway.onError(error);
+			}
+		}
 	}
 
 	public void onRspError(CTPRspInfo rspInfo, int requestID, boolean isLast) {
 		logger.error("发生错误:错误号" + rspInfo.ErrorID + ": " + rspInfo.ErrorMsg);
+		if (gateway != null) {
+			ErrorDTO error = new ErrorDTO();
+			error.setErrorNo(rspInfo.ErrorID);
+			error.setErrorMsg(rspInfo.ErrorMsg);
+			gateway.onError(error);
+		}
 	}
 
 	public void onRspSubMarketData(CTPSpecificInstrument specificInstrument,
@@ -157,7 +149,26 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 	}
 
 	public void onRtnDepthMarketData(CTPDepthMarketData depthMarketData) {
-
+		if (gateway != null) {
+			Tick tick = new Tick();
+			tick.setGatewayName(gateway.getGatewayName());
+			
+			tick.setSymbol(depthMarketData.InstrumentID);
+			tick.setExchange(depthMarketData.ExchangeID);
+			tick.setLastPrice(depthMarketData.LastPrice);
+			tick.setHighPrice(depthMarketData.HighestPrice);
+			tick.setLowPrice(depthMarketData.LowestPrice);
+			tick.setPreClosePrice(depthMarketData.PreClosePrice);
+			tick.setUpperLimit(depthMarketData.UpperLimitPrice);
+			tick.setLowerLimit(depthMarketData.LowerLimitPrice);
+			
+			tick.setBidPrice1(depthMarketData.BidPrice1);
+			tick.setBidVolume1(depthMarketData.BidVolume1);
+			tick.setAskPrice1(depthMarketData.AskPrice1);
+			tick.setAskVolume1(depthMarketData.AskVolume1);
+			
+			gateway.onTick(tick);
+		}
 	}
 
 	public void onRtnForQuoteRsp(CTPForQuoteRsp forQuoteRsp) {
@@ -200,7 +211,7 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 		}
 	}
 
-	public void connect() {
+	public void connect(String flowPath, String frontAddress) {
 		// 如果尚未建立服务器连接，则进行连接
 		if (!isConntected) {
 			File file = new File(flowPath);
@@ -222,19 +233,11 @@ public final class CTPMdApi implements CThostFtdcMdSpi {
 
 	}
 
-	/**
-	 * 注册行情推送
-	 * 
-	 * @param callback
-	 */
-	public void registerQuotaCallback(QuotaCallback callback) {
-		this.callback = callback;
-	}
-	
-	public void destroy(){
-		if (mdApi != null){
+	public void destroy() {
+		if (mdApi != null) {
 			mdApi.release();
 		}
 	}
+
 
 }

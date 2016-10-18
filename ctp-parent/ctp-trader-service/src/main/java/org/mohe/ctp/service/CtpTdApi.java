@@ -3,6 +3,7 @@ package org.mohe.ctp.service;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 import org.mohe.ctp.dto.AccountDTO;
@@ -12,6 +13,7 @@ import org.mohe.ctp.dto.OrderDTO;
 import org.mohe.ctp.dto.OrderReq;
 import org.mohe.ctp.dto.PositionDTO;
 import org.mohe.ctp.dto.TradeDTO;
+import org.mohe.ctp.entity.Contract;
 import org.mohe.ctp.enums.THOST_TE_RESUME_TYPE;
 import org.mohe.ctp.enums.ThostFtdcActionFlagType;
 import org.mohe.ctp.enums.ThostFtdcContingentConditionType;
@@ -20,10 +22,8 @@ import org.mohe.ctp.enums.ThostFtdcForceCloseReasonType;
 import org.mohe.ctp.enums.ThostFtdcHedgeFlagEnType;
 import org.mohe.ctp.enums.ThostFtdcTimeConditionType;
 import org.mohe.ctp.enums.ThostFtdcVolumeConditionType;
-import org.mohe.ctp.service.sequence.EnumSeqType;
-import org.mohe.ctp.service.sequence.SequenceService;
 import org.mohe.ctp.service.td.GatewayService;
-import org.mohe.ctp.service.td.InstrumentService;
+import org.springframework.util.StringUtils;
 
 import cn.yiwang.ctp.CThostFtdcTraderApi;
 import cn.yiwang.ctp.CThostFtdcTraderSpi;
@@ -57,9 +57,10 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 
 	private GatewayService gateway;
 
-	private SequenceService sequenceService;
+	private final AtomicInteger reqId = new AtomicInteger();
+	
+	private final AtomicInteger orderId = new AtomicInteger();
 
-	private InstrumentService instrumentService;
 
 	private int frontId;
 	private int sessionId;
@@ -77,33 +78,21 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		this.gateway = gateway;
 	}
 
-	public SequenceService getSequenceService() {
-		return sequenceService;
-	}
 
-	public void setSequenceService(SequenceService sequenceService) {
-		this.sequenceService = sequenceService;
-	}
-
-	public InstrumentService getInstrumentService() {
-		return instrumentService;
-	}
-
-	public void setInstrumentService(InstrumentService instrumentService) {
-		this.instrumentService = instrumentService;
-	}
 
 
 	public void onFrontConnected() {
 		isConnected = true;
 		logger.info("交易服务器连接成功");
 		login();
+		gateway.setTdConnected(true);
 	}
 
 	public void onFrontDisconnected(int reason) {
 		isConnected = false;
 		isLogined = false;
 		logger.info("交易服务器连接断开");
+		gateway.setTdConnected(false);
 	}
 
 	public void onHeartBeatWarning(int timeLapse) {
@@ -122,8 +111,7 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 			CTPSettlementInfoConfirm settlementInfoConfirm = new CTPSettlementInfoConfirm();
 			settlementInfoConfirm.BrokerID = brokerId;
 			settlementInfoConfirm.InvestorID = userId;
-			tdApi.reqSettlementInfoConfirm(settlementInfoConfirm,
-					sequenceService.getSequence(EnumSeqType.REQUEST));
+			tdApi.reqSettlementInfoConfirm(settlementInfoConfirm, reqId.getAndIncrement());
 
 		} else {
 			logger.error("发生错误:错误号" + rspInfo.ErrorID + ": " + rspInfo.ErrorMsg);
@@ -158,8 +146,21 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 
 	public void onRspQryInstrument(CTPInstrument instrument,
 			CTPRspInfo rspInfo, int requestID, boolean isLast) {
-
+		//logger.info("合约查询"+ instrument.InstrumentID);
 		//保存合约
+		Contract contract = new Contract();
+		contract.setGatewayName(gateway.getGatewayName());
+		contract.setSymbol(instrument.InstrumentID);
+		contract.setExchange(instrument.ExchangeID);
+		contract.setVtSymbol(contract.getSymbol());
+		contract.setName(contract.getName());
+		contract.setSize(instrument.VolumeMultiple);
+		contract.setPriceTick(instrument.PriceTick);
+		contract.setStrikePrice(instrument.StrikePrice);
+		contract.setUnderlyingSymbol(instrument.UnderlyingInstrID);
+		contract.setProductClass(String.valueOf(instrument.ProductClass));
+		contract.setOptionType(String.valueOf(instrument.OptionsType));
+		gateway.onContract(contract);
 	}
 
 	public void onRspQryInvestorPosition(CTPInvestorPosition investorPosition,
@@ -242,6 +243,10 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 	}
 
 	public void onRtnOrder(CTPOrder order) {
+		logger.info(order);
+		if(!StringUtils.hasText(order.OrderRef)){
+			return;
+		}
 		Integer newOrderRef = Integer.valueOf(order.OrderRef);
 		maxOrderRef = Math.max(maxOrderRef, newOrderRef);
 		OrderDTO orderDto = new OrderDTO();
@@ -267,6 +272,10 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 	}
 
 	public void onRtnTrade(CTPTrade trade) {
+		logger.info(trade);
+		if(!StringUtils.hasText(trade.TradeID)){
+			return;
+		}
 		TradeDTO tradeDto = new TradeDTO();
 		tradeDto.setGatewayName(gateway.getGatewayName());
 		tradeDto.setSymbol(trade.InstrumentID);
@@ -318,8 +327,7 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		logger.info("结算信息确认完成");
 		// 查询合约代码
 		CTPQryInstrument qryInstrument = new CTPQryInstrument();
-		tdApi.reqQryInstrument(qryInstrument,
-				sequenceService.getSequence(EnumSeqType.REQUEST));
+		tdApi.reqQryInstrument(qryInstrument,reqId.getAndIncrement());
 	}
 
 	public void onRspQrySettlementInfo(CTPSettlementInfo settlementInfo,
@@ -350,11 +358,13 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		reqUserLogin.UserID = userId;
 		reqUserLogin.BrokerID = brokerId;
 		reqUserLogin.Password = password;
-		tdApi.reqUserLogin(reqUserLogin,
-				sequenceService.getSequence(EnumSeqType.REQUEST));
+		tdApi.reqUserLogin(reqUserLogin,reqId.getAndIncrement());
 	}
 
 	public void connect(String flowPath, String frontAddress, String userId, String brokerId, String password) {
+		this.userId = userId;
+		this.brokerId = brokerId;
+		this.password = password;
 		if (isConnected) {
 			if (!isLogined) {
 				login();
@@ -378,26 +388,25 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 					.getCode());
 			tdApi.registerSpi(this);
 			tdApi.init();
-			tdApi.join();
 		}
 	}
 	
 	
 	public void qryAccount(){
 		CTPQryTradingAccount qryTradingAccount = new CTPQryTradingAccount();
-		tdApi.reqQryTradingAccount(qryTradingAccount , sequenceService.getSequence(EnumSeqType.REQUEST));
+		tdApi.reqQryTradingAccount(qryTradingAccount , reqId.getAndIncrement());
 	}
 	
 	public void qryPosition(){
 		CTPQryInvestorPosition qryInvestorPosition = new CTPQryInvestorPosition();
 		qryInvestorPosition.BrokerID = brokerId;
 		qryInvestorPosition.InvestorID = userId;
-		tdApi.reqQryInvestorPosition(qryInvestorPosition , sequenceService.getSequence(EnumSeqType.REQUEST));
+		tdApi.reqQryInvestorPosition(qryInvestorPosition , reqId.getAndIncrement());
 	}
 
 	public String sendOrder(OrderReq orderReq){
 		
-		int orderRef = sequenceService.getSequence(EnumSeqType.ORDERREF);
+		int orderRef = orderId.getAndIncrement();
 		
 		CTPInputOrder inputOrder = new CTPInputOrder();
 		inputOrder.InstrumentID = orderReq.getSymbol();
@@ -421,7 +430,7 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		inputOrder.VolumeCondition = ThostFtdcVolumeConditionType.THOST_FTDC_VC_AV.getCode();
 		inputOrder.MinVolume = 1;
 
-		tdApi.reqOrderInsert(inputOrder , sequenceService.getSequence(EnumSeqType.ORDERREF));
+		tdApi.reqOrderInsert(inputOrder , reqId.getAndIncrement());
 		return gateway.getGatewayName()+"."+orderRef;
 	}
 	
@@ -437,7 +446,7 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		inputOrderAction.ActionFlag = ThostFtdcActionFlagType.THOST_FTDC_AF_Delete.getCode();
 		inputOrderAction.BrokerID = brokerId;
 		inputOrderAction.InvestorID = userId;
-		tdApi.reqOrderAction(inputOrderAction , sequenceService.getSequence(EnumSeqType.REQUEST));
+		tdApi.reqOrderAction(inputOrderAction , reqId.getAndIncrement());
 	}
 	
 	

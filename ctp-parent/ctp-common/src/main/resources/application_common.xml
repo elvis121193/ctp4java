@@ -13,6 +13,7 @@
         <property name="locations">
         	<array>
 	            <value>classpath:config_db.properties</value>
+	            <value>classpath:ctp.properties</value>
         	</array>
         </property>  
     </bean>  
@@ -24,11 +25,16 @@
         <constructor-arg ref="mongo" />  
         <constructor-arg value="${mongo.dbname}" />  
     </bean>  
-   <!--  <mongo:db-factory id="mongoDbFactory"  host="${mongo.host}"  port="${mongo.port}"  dbname="${mongo.dbname}"  username="${mongo.username}"  password="${database.password}"/>    
-	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
-		<constructor-arg ref="mongoDbFactory" />
-		<property name="writeConcern" value="SAFE" />
+    
+ 	<bean id="gateway" class="org.mohe.ctp.service.CtpGateway"
+		init-method="connect" destroy-method="destroy">
+		<property name="mdFlowPath" value="${ctp.md.flowPath}" />
+		<property name="tdFlowPath" value="${ctp.td.flowPath}" />
+		<property name="tdFrontAddress" value="${ctp.td.frontAddress}" />
+		<property name="mdFrontAddress" value="${ctp.md.frontAddress}" />
+		<property name="userId" value="${ctp.td.userId}" />
+		<property name="brokerId" value="${ctp.td.brokerId}" />
+		<property name="password" value="${ctp.td.password}" />
 	</bean>
-	<mongo:repositories base-package="org.mohe.ctp.dao" /> -->
     
 </beans>
