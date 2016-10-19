@@ -241,7 +241,10 @@ public final class CtpGateway implements Gateway {
 	}
 
 	public void onContract(Contract contract) {
-		instrumentDao.save(contract);
+		Contract inst = instrumentDao.getInstrument(contract.getSymbol());
+		if(inst == null){
+		   instrumentDao.save(contract);
+		}
 	}
 
 	

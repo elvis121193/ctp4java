@@ -2,6 +2,7 @@ package org.mohe.ctp.entity;
 
 import java.io.Serializable;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -18,44 +19,27 @@ public class Trade extends BaseDTO implements Serializable{
 	private String symbol;
 	
 	/**
-	 * 交易所代码
-	 */
-	private String exchange;
-	
-	/**
-	 * 合约在系统中的唯一代码，通常是 合约代码.交易所代码
-	 */
-	private String vtSymbol;
-	
-	/**
 	 * 成交编号
 	 */
+	@Id
 	private String tradeId;
 	
-	/**
-	 * 成交在系统中的唯一编号，通常是 Gateway名.成交编号
-	 */
-	private String vtTradeId;
 	
 	/**
 	 * 订单编号
 	 */
 	private String orderId;
 	
-	/**
-	 * 订单在系统中的唯一编号，通常是 Gateway名.订单编号
-	 */
-	private String vtOrderId;
 	
 	/**
 	 * 成交方向
 	 */
-	private String direction;
+	private char direction;
 	
 	/**
 	 * 成交开平仓
 	 */
-	private String offset;
+	private char offset;
 	
 	/**
 	 * 成交价格
@@ -80,22 +64,6 @@ public class Trade extends BaseDTO implements Serializable{
 		this.symbol = symbol;
 	}
 
-	public String getExchange() {
-		return exchange;
-	}
-
-	public void setExchange(String exchange) {
-		this.exchange = exchange;
-	}
-
-	public String getVtSymbol() {
-		return vtSymbol;
-	}
-
-	public void setVtSymbol(String vtSymbol) {
-		this.vtSymbol = vtSymbol;
-	}
-
 	public String getTradeId() {
 		return tradeId;
 	}
@@ -104,13 +72,6 @@ public class Trade extends BaseDTO implements Serializable{
 		this.tradeId = tradeId;
 	}
 
-	public String getVtTradeId() {
-		return vtTradeId;
-	}
-
-	public void setVtTradeId(String vtTradeId) {
-		this.vtTradeId = vtTradeId;
-	}
 
 	public String getOrderId() {
 		return orderId;
@@ -120,27 +81,19 @@ public class Trade extends BaseDTO implements Serializable{
 		this.orderId = orderId;
 	}
 
-	public String getVtOrderId() {
-		return vtOrderId;
-	}
-
-	public void setVtOrderId(String vtOrderId) {
-		this.vtOrderId = vtOrderId;
-	}
-
-	public String getDirection() {
+	public char getDirection() {
 		return direction;
 	}
 
-	public void setDirection(String direction) {
+	public void setDirection(char direction) {
 		this.direction = direction;
 	}
 
-	public String getOffset() {
+	public char getOffset() {
 		return offset;
 	}
 
-	public void setOffset(String offset) {
+	public void setOffset(char offset) {
 		this.offset = offset;
 	}
 
@@ -173,18 +126,10 @@ public class Trade extends BaseDTO implements Serializable{
 		StringBuilder builder = new StringBuilder();
 		builder.append("TradeDTO [symbol=");
 		builder.append(symbol);
-		builder.append(", exchange=");
-		builder.append(exchange);
-		builder.append(", vtSymbol=");
-		builder.append(vtSymbol);
 		builder.append(", tradeId=");
 		builder.append(tradeId);
-		builder.append(", vtTradeId=");
-		builder.append(vtTradeId);
 		builder.append(", orderId=");
 		builder.append(orderId);
-		builder.append(", vtOrderId=");
-		builder.append(vtOrderId);
 		builder.append(", direction=");
 		builder.append(direction);
 		builder.append(", offset=");

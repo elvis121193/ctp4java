@@ -149,17 +149,14 @@ public class CtpTdApi implements CThostFtdcTraderSpi {
 		//logger.info("合约查询"+ instrument.InstrumentID);
 		//保存合约
 		Contract contract = new Contract();
-		contract.setGatewayName(gateway.getGatewayName());
 		contract.setSymbol(instrument.InstrumentID);
-		contract.setExchange(instrument.ExchangeID);
-		contract.setVtSymbol(contract.getSymbol());
-		contract.setName(contract.getName());
+		contract.setName(instrument.InstrumentName);
 		contract.setSize(instrument.VolumeMultiple);
 		contract.setPriceTick(instrument.PriceTick);
 		contract.setStrikePrice(instrument.StrikePrice);
 		contract.setUnderlyingSymbol(instrument.UnderlyingInstrID);
-		contract.setProductClass(String.valueOf(instrument.ProductClass));
-		contract.setOptionType(String.valueOf(instrument.OptionsType));
+		contract.setProductClass(instrument.ProductClass);
+		contract.setOptionType(instrument.OptionsType);
 		gateway.onContract(contract);
 	}
 

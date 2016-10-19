@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.mohe.ctp.entity.ErrorDTO;
 import org.mohe.ctp.entity.Tick;
 import org.mohe.ctp.gateway.Gateway;
+import org.springframework.util.StringUtils;
 
 import cn.yiwang.ctp.CThostFtdcMdApi;
 import cn.yiwang.ctp.CThostFtdcMdSpi;
@@ -151,21 +152,15 @@ public class MyMdSpi implements CThostFtdcMdSpi {
 	public void onRtnDepthMarketData(CTPDepthMarketData depthMarketData) {
 		if (gateway != null) {
 			Tick tick = new Tick();
-			tick.setGatewayName(gateway.getGatewayName());
 			
 			tick.setSymbol(depthMarketData.InstrumentID);
-			tick.setExchange(depthMarketData.ExchangeID);
-			tick.setLastPrice(depthMarketData.LastPrice);
-			tick.setHighPrice(depthMarketData.HighestPrice);
-			tick.setLowPrice(depthMarketData.LowestPrice);
-			tick.setPreClosePrice(depthMarketData.PreClosePrice);
-			tick.setUpperLimit(depthMarketData.UpperLimitPrice);
-			tick.setLowerLimit(depthMarketData.LowerLimitPrice);
-			
-			tick.setBidPrice1(depthMarketData.BidPrice1);
-			tick.setBidVolume1(depthMarketData.BidVolume1);
-			tick.setAskPrice1(depthMarketData.AskPrice1);
-			tick.setAskVolume1(depthMarketData.AskVolume1);
+			tick.setLastPrice((int)depthMarketData.LastPrice*1000);
+			tick.setTime(Integer.valueOf(StringUtils.replace(depthMarketData.UpdateTime, ":", "")+String.format("%03d", depthMarketData.UpdateMillisec)));
+			tick.setVolume(depthMarketData.Volume);
+			tick.setBidPrice((int)depthMarketData.BidPrice1*1000);
+			tick.setBidVolume(depthMarketData.BidVolume1);
+			tick.setAskPrice((int)depthMarketData.AskPrice1*1000);
+			tick.setAskVolume(depthMarketData.AskVolume1);
 			
 			gateway.onTick(tick);
 		}

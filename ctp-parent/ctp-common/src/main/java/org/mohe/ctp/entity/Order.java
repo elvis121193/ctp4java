@@ -2,6 +2,7 @@ package org.mohe.ctp.entity;
 
 import java.io.Serializable;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -16,31 +17,19 @@ public class Order extends BaseDTO implements Serializable{
 	 * 合约代码
 	 */
 	private String symbol;
-	
-	/**
-	 * 交易所代码
-	 */
-	private String exchange;
-	
-	/**
-	 * 合约在系统中的唯一代码，通常是 合约代码.交易所代码
-	 */
-	private String vtSymbol;
+
 	
 	/**
 	 * 订单编号
 	 */
+	@Id
 	private String orderId;
 	
-	/**
-	 * 订单在系统中的唯一编号，通常是 Gateway名.订单编号
-	 */
-	private String vtOrderId;
 	
 	/**
 	 * 报单方向
 	 */
-	private String direction;
+	private char direction;
 	
 	/**
 	 * 报单开平仓
@@ -65,7 +54,7 @@ public class Order extends BaseDTO implements Serializable{
 	/**
 	 *  报单状态
 	 */
-	private String status;
+	private char status;
 	
 	/**
 	 * 发单时间
@@ -95,21 +84,7 @@ public class Order extends BaseDTO implements Serializable{
 		this.symbol = symbol;
 	}
 
-	public String getExchange() {
-		return exchange;
-	}
-
-	public void setExchange(String exchange) {
-		this.exchange = exchange;
-	}
-
-	public String getVtSymbol() {
-		return vtSymbol;
-	}
-
-	public void setVtSymbol(String vtSymbol) {
-		this.vtSymbol = vtSymbol;
-	}
+	
 
 	public String getOrderId() {
 		return orderId;
@@ -119,19 +94,12 @@ public class Order extends BaseDTO implements Serializable{
 		this.orderId = orderId;
 	}
 
-	public String getVtOrderId() {
-		return vtOrderId;
-	}
 
-	public void setVtOrderId(String vtOrderId) {
-		this.vtOrderId = vtOrderId;
-	}
-
-	public String getDirection() {
+	public char getDirection() {
 		return direction;
 	}
 
-	public void setDirection(String direction) {
+	public void setDirection(char direction) {
 		this.direction = direction;
 	}
 
@@ -167,11 +135,11 @@ public class Order extends BaseDTO implements Serializable{
 		this.tradedVolume = tradedVolume;
 	}
 
-	public String getStatus() {
+	public char getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(char status) {
 		this.status = status;
 	}
 
@@ -212,14 +180,8 @@ public class Order extends BaseDTO implements Serializable{
 		StringBuilder builder = new StringBuilder();
 		builder.append("OrderDTO [symbol=");
 		builder.append(symbol);
-		builder.append(", exchange=");
-		builder.append(exchange);
-		builder.append(", vtSymbol=");
-		builder.append(vtSymbol);
 		builder.append(", orderId=");
 		builder.append(orderId);
-		builder.append(", vtOrderId=");
-		builder.append(vtOrderId);
 		builder.append(", direction=");
 		builder.append(direction);
 		builder.append(", offset=");

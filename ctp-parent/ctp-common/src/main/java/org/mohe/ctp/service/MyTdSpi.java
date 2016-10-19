@@ -148,17 +148,14 @@ public class MyTdSpi implements CThostFtdcTraderSpi {
 		//logger.info("合约查询"+ instrument.InstrumentID);
 		//保存合约
 		Contract contract = new Contract();
-		contract.setGatewayName(gateway.getGatewayName());
 		contract.setSymbol(instrument.InstrumentID);
-		contract.setExchange(instrument.ExchangeID);
-		contract.setVtSymbol(contract.getSymbol());
-		contract.setName(contract.getName());
+		contract.setName(instrument.InstrumentName);
 		contract.setSize(instrument.VolumeMultiple);
 		contract.setPriceTick(instrument.PriceTick);
 		contract.setStrikePrice(instrument.StrikePrice);
 		contract.setUnderlyingSymbol(instrument.UnderlyingInstrID);
-		contract.setProductClass(String.valueOf(instrument.ProductClass));
-		contract.setOptionType(String.valueOf(instrument.OptionsType));
+		contract.setProductClass(instrument.ProductClass);
+		contract.setOptionType(instrument.OptionsType);
 		gateway.onContract(contract);
 	}
 
@@ -168,12 +165,10 @@ public class MyTdSpi implements CThostFtdcTraderSpi {
 				+ investorPosition.PosiDirection;
 		
 		Position position = new Position();
-		position.setGatewayName(gateway.getGatewayName());
 		
 		position.setSymbol(investorPosition.InstrumentID);
-		position.setVtSymbol(investorPosition.InstrumentID);
 		
-		position.setDirection(String.valueOf(investorPosition.PosiDirection));
+		position.setDirection(investorPosition.PosiDirection);
 		if(ThostFtdcDirectionType.THOST_FTDC_D_Buy.getCode() == investorPosition.PosiDirection ){
 			position.setFrozen(investorPosition.LongFrozen);
 		}else
@@ -192,12 +187,8 @@ public class MyTdSpi implements CThostFtdcTraderSpi {
 	public void onRspQryTradingAccount(CTPTradingAccount tradingAccount,
 			CTPRspInfo rspInfo, int requestID, boolean isLast) {
 		Account account = new Account();
-		account.setGatewayName(gateway.getGatewayName());
 
 		account.setAccountId(tradingAccount.AccountID);
-		account.setVtAccountId(account.getGatewayName() + "."
-				+ account.getAccountId());
-
 		account.setPreBalance(tradingAccount.PreBalance);
 		account.setAvailable(tradingAccount.Available);
 		account.setCommission(tradingAccount.Commission);
@@ -248,14 +239,11 @@ public class MyTdSpi implements CThostFtdcTraderSpi {
 		Integer newOrderRef = Integer.valueOf(order.OrderRef);
 		maxOrderRef = Math.max(maxOrderRef, newOrderRef);
 		Order orderDto = new Order();
-		orderDto.setGatewayName(gateway.getGatewayName());
 		orderDto.setSymbol(order.InvestorID);
-		orderDto.setExchange(order.ExchangeID);
-		orderDto.setVtSymbol(orderDto.getSymbol());
 		orderDto.setOrderId(order.OrderRef);
-		orderDto.setDirection(String.valueOf(order.Direction));
+		orderDto.setDirection(order.Direction);
 		orderDto.setOffset(order.CombOffsetFlag);
-		orderDto.setStatus(String.valueOf(order.OrderStatus));
+		orderDto.setStatus(order.OrderStatus);
 		
 		orderDto.setPrice(order.LimitPrice);
 		orderDto.setTotalVolume(order.VolumeTotalOriginal);
@@ -265,7 +253,6 @@ public class MyTdSpi implements CThostFtdcTraderSpi {
 		
 		orderDto.setFrontId(order.FrontID);
 		orderDto.setSessionId(order.SessionID);
-		orderDto.setVtOrderId(gateway.getGatewayName()+"."+ order.OrderRef);
 		gateway.onOrder(orderDto);
 	}
 
@@ -274,19 +261,14 @@ public class MyTdSpi implements CThostFtdcTraderSpi {
 			return;
 		}
 		Trade tradeDto = new Trade();
-		tradeDto.setGatewayName(gateway.getGatewayName());
 		tradeDto.setSymbol(trade.InstrumentID);
-		tradeDto.setExchange(trade.ExchangeID);
-		tradeDto.setVtSymbol(trade.ExchangeInstID);
 		
 		tradeDto.setTradeId(trade.TradeID);
-		tradeDto.setVtTradeId(gateway.getGatewayName()+"."+trade.TradeID);
 		
 		tradeDto.setOrderId(trade.OrderRef);
-		tradeDto.setVtOrderId(gateway.getGatewayName()+"."+trade.OrderRef);
 		
-		tradeDto.setDirection(String.valueOf(trade.Direction));
-		tradeDto.setOffset(String.valueOf(trade.OffsetFlag));
+		tradeDto.setDirection(trade.Direction);
+		tradeDto.setOffset(trade.OffsetFlag);
 		
 		tradeDto.setPrice(trade.Price);
 		tradeDto.setVolume(trade.Volume);

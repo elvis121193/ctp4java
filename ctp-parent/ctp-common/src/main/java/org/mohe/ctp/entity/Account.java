@@ -2,6 +2,7 @@ package org.mohe.ctp.entity;
 
 import java.io.Serializable;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -12,9 +13,8 @@ public class Account extends BaseDTO implements Serializable{
 	 */
 	private static final long serialVersionUID = 1937489621176286614L;
 
+	@Id
 	private String accountId;
-	
-	private String vtAccountId;
 	
 	private float preBalance;
 	
@@ -36,14 +36,6 @@ public class Account extends BaseDTO implements Serializable{
 
 	public void setAccountId(String accountId) {
 		this.accountId = accountId;
-	}
-
-	public String getVtAccountId() {
-		return vtAccountId;
-	}
-
-	public void setVtAccountId(String vtAccountId) {
-		this.vtAccountId = vtAccountId;
 	}
 
 	public float getPreBalance() {
@@ -100,6 +92,29 @@ public class Account extends BaseDTO implements Serializable{
 
 	public void setPositionProfit(float positionProfit) {
 		this.positionProfit = positionProfit;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Account [accountId=");
+		builder.append(accountId);
+		builder.append(", preBalance=");
+		builder.append(preBalance);
+		builder.append(", balance=");
+		builder.append(balance);
+		builder.append(", available=");
+		builder.append(available);
+		builder.append(", commission=");
+		builder.append(commission);
+		builder.append(", margin=");
+		builder.append(margin);
+		builder.append(", closeProfit=");
+		builder.append(closeProfit);
+		builder.append(", positionProfit=");
+		builder.append(positionProfit);
+		builder.append("]");
+		return builder.toString();
 	}
 	
 	

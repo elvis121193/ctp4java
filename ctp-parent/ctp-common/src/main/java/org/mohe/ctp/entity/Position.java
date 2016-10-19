@@ -13,12 +13,8 @@ public class Position extends BaseDTO implements Serializable{
 	private static final long serialVersionUID = -6803299283060162020L;
 
 	private String symbol;
-	
-	private String exchange;
-	
-	private String vtSymbol;
-	
-	private String direction;
+
+	private char direction;
 	
 	private int position;
 	
@@ -38,27 +34,11 @@ public class Position extends BaseDTO implements Serializable{
 		this.symbol = symbol;
 	}
 
-	public String getExchange() {
-		return exchange;
-	}
-
-	public void setExchange(String exchange) {
-		this.exchange = exchange;
-	}
-
-	public String getVtSymbol() {
-		return vtSymbol;
-	}
-
-	public void setVtSymbol(String vtSymbol) {
-		this.vtSymbol = vtSymbol;
-	}
-
-	public String getDirection() {
+	public char getDirection() {
 		return direction;
 	}
 
-	public void setDirection(String direction) {
+	public void setDirection(char direction) {
 		this.direction = direction;
 	}
 
@@ -101,6 +81,29 @@ public class Position extends BaseDTO implements Serializable{
 	public void setYdPosition(int ydPosition) {
 		this.ydPosition = ydPosition;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Position [symbol=");
+		builder.append(symbol);
+		builder.append(", direction=");
+		builder.append(direction);
+		builder.append(", position=");
+		builder.append(position);
+		builder.append(", frozen=");
+		builder.append(frozen);
+		builder.append(", price=");
+		builder.append(price);
+		builder.append(", vtPositionName=");
+		builder.append(vtPositionName);
+		builder.append(", ydPosition=");
+		builder.append(ydPosition);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
 	
 	
 }

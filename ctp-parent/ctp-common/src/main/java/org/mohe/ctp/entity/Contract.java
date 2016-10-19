@@ -2,6 +2,7 @@ package org.mohe.ctp.entity;
 
 import java.io.Serializable;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -11,16 +12,12 @@ public class Contract extends BaseDTO implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 6961103226926018958L;
-
+	@Id
 	private String symbol;
-	
-	private String exchange;
-	
-	private String vtSymbol;
 	
 	private String name;
 	
-	private String productClass;
+	private char productClass;
 	
 	private int size;
 	
@@ -30,7 +27,7 @@ public class Contract extends BaseDTO implements Serializable{
 	
 	private String underlyingSymbol;
 	
-	private String optionType;
+	private char optionType;
 
 	public String getSymbol() {
 		return symbol;
@@ -38,22 +35,6 @@ public class Contract extends BaseDTO implements Serializable{
 
 	public void setSymbol(String symbol) {
 		this.symbol = symbol;
-	}
-
-	public String getExchange() {
-		return exchange;
-	}
-
-	public void setExchange(String exchange) {
-		this.exchange = exchange;
-	}
-
-	public String getVtSymbol() {
-		return vtSymbol;
-	}
-
-	public void setVtSymbol(String vtSymbol) {
-		this.vtSymbol = vtSymbol;
 	}
 
 	public String getName() {
@@ -64,11 +45,11 @@ public class Contract extends BaseDTO implements Serializable{
 		this.name = name;
 	}
 
-	public String getProductClass() {
+	public char getProductClass() {
 		return productClass;
 	}
 
-	public void setProductClass(String productClass) {
+	public void setProductClass(char productClass) {
 		this.productClass = productClass;
 	}
 
@@ -104,12 +85,35 @@ public class Contract extends BaseDTO implements Serializable{
 		this.underlyingSymbol = underlyingSymbol;
 	}
 
-	public String getOptionType() {
+	public char getOptionType() {
 		return optionType;
 	}
 
-	public void setOptionType(String optionType) {
+	public void setOptionType(char optionType) {
 		this.optionType = optionType;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Contract [symbol=");
+		builder.append(symbol);
+		builder.append(", name=");
+		builder.append(name);
+		builder.append(", productClass=");
+		builder.append(productClass);
+		builder.append(", size=");
+		builder.append(size);
+		builder.append(", priceTick=");
+		builder.append(priceTick);
+		builder.append(", strikePrice=");
+		builder.append(strikePrice);
+		builder.append(", underlyingSymbol=");
+		builder.append(underlyingSymbol);
+		builder.append(", optionType=");
+		builder.append(optionType);
+		builder.append("]");
+		return builder.toString();
 	}
 
 	
